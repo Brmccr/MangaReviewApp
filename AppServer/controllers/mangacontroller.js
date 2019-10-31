@@ -1,18 +1,31 @@
 let express = require('express');
 let router = express.Router();
-let sequelize = require('../db');
+let db = require('../db');
 let jwt = require('jsonwebtoken');
 let bcrypt = require('bcryptjs');
-let User = sequelize.import('../models/user');
+// let User = db.import('../models/user');
 const validateSession = require('../middleware/validate-session');
-const manga = require('../db').import('../models/manga');
-const review = require('../db').import('../models/review');
-let ReviewModel = sequelize.import('../models/review');
+// const manga = require('../db').import('../models/manga');
+// const review = require('../db').import('../models/review');
+// let ReviewModel = sequelize.import('../models/review');
+let User = db.sequelize.import('../models/user');
 
 
+router.get('/allmangas', (req, res) => {
+    db.mangas.findAll({
+      include: [
+        {
+          model: db.reviews,
+        }
+      ]
+    }).then(manga => res.status(200).json(manga))
+    .catch(err => res.status(500).json({
+        error: err
+    }))
+})
 
 router.get('/allmanga', (req, res) => {
-    manga.findAll()
+    db.mangas.findAll()
     .then(manga => res.status(200).json(manga))
     .catch(err => res.status(500).json({
         error: err
@@ -20,7 +33,7 @@ router.get('/allmanga', (req, res) => {
 })
 
 router.get('/allreview', (req, res) => {
-    review.findAll()
+    db.reviews.findAll()
     .then(manga => res.status(200).json(manga))
     .catch(err => res.status(500).json({
         error: err
@@ -30,7 +43,7 @@ router.get('/allreview', (req, res) => {
 router.get('/review', validateSession, function(req, res) {
     let user = req.user.id;
 
-    review
+    db.reviews
     .findAll({
         where: {owner: user }
     })
@@ -111,13 +124,13 @@ router.post('/review', validateSession, function(req, res){
     const reviewFromRequest = {
         rating: req.body.rating,
         paragraph: req.body.paragraph,
-        owner: req.user.id
-        // mangaID: req.manga.id
+        owner: req.user.id,
+        mangaId: req.body.mangaId
     }
 
     console.log(reviewFromRequest)
 
-    review.create(reviewFromRequest)
+    db.reviews.create(reviewFromRequest)
         .then(review => res.status(200).json(review))
         .catch(err => res.json(req.errors));
 })
@@ -134,14 +147,14 @@ router.post('/mangacreate', validateSession, function(req, res) {
     }
         console.log(mangaItem)
 
-    manga.create(mangaItem)
+    db.mangas.create(mangaItem)
         .then(manga => res.status(200).json(manga))
         .catch(err => res.json(req.errors));
 })
 //create
 
 router.put('/:id', validateSession, (req, res) => { // validateSession, 
-    review.update(req.body, {
+    db.reviews.update(req.body, {
         where: {
             id: req.params.id
         }
@@ -158,7 +171,7 @@ router.put('/:id', validateSession, (req, res) => { // validateSession,
 
 
 router.delete('/:id', validateSession, (req, res) => { /// validateSession, to be added back in 
-    review.destroy({
+    db.reviews.destroy({
         where: {
             id: req.params.id
         }

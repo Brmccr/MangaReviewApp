@@ -3,11 +3,11 @@ require('dotenv').config();
 let express = require('express');
 let app = express();
 let manga = require('./controllers/mangacontroller')
-let sequelize = require('./db');
+let db = require('./db');
 
 app.use(express.json());
 
-sequelize.sync();
+db.sequelize.sync();
 app.use(require('./middleware/headers'));
 
 app.use('/manga', manga)
