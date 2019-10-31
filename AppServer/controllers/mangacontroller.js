@@ -24,6 +24,26 @@ router.get('/allmangas', (req, res) => {
     }))
 })
 
+//get all reviews by mangaID
+router.get('/allreviewmanga', validateSession, function(req, res) {
+    let user = req.user.id;
+
+    db.reviews
+    .findAll({
+        where: {owner: user }
+    })
+    .then(
+        function findAllSuccess(data) {
+            res.json(data);
+        },
+        function findAllError(err) {
+            res.send(500, err.message);
+        }
+    );
+});
+
+
+
 router.get('/allmanga', (req, res) => {
     db.mangas.findAll()
     .then(manga => res.status(200).json(manga))
@@ -56,6 +76,8 @@ router.get('/review', validateSession, function(req, res) {
         }
     );
 });
+
+
 
 
 
